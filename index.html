@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRE Market Risk Monitor</title>
+<style>
+  @font-face{
+    font-family:'Cera Pro';
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Regular.woff2') format('woff2'),
+        url('https://sscdwidgets.github.io/fonts/CeraPro-Regular.ttf') format('truetype');
+    font-weight:400;font-display:swap;
+  }
+  @font-face{
+    font-family:'Cera Pro';
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Bold.woff2') format('woff2'),
+        url('https://sscdwidgets.github.io/fonts/CeraPro-Bold.ttf') format('truetype');
+    font-weight:700;font-display:swap;
+  }
+  :root{
+    --navy:#002D72; --gold:#FFBF3F; --blue:#0960BB; --gray:#4C4C4C;
+    --ink:#0c1b33; --paper:#fbfaf7; --line:#e6e3da; --card:#ffffff;
+    --good:#1f7a52; --warn:#c98a00; --bad:#b3261e;
+    --mono:ui-monospace,'JetBrains Mono',SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    font-family:'Cera Pro',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    color:var(--ink);background:var(--paper);
+    -webkit-font-smoothing:antialiased;line-height:1.45;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 40px;}
+
+  /* Header */
+  .head{display:flex;justify-content:space-between;align-items:flex-end;
+    gap:16px;flex-wrap:wrap;border-bottom:3px solid var(--navy);padding-bottom:16px;}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--blue);margin:0 0 6px;}
+  h1{font-size:30px;font-weight:700;color:var(--navy);margin:0;letter-spacing:-.01em;line-height:1.05;}
+  .sub{font-size:13.5px;color:var(--gray);margin:7px 0 0;max-width:46ch;}
+  .stamp{font-family:var(--mono);font-size:11px;color:var(--gray);text-align:right;white-space:nowrap;}
+  .badge{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+    text-transform:uppercase;padding:3px 8px;border-radius:3px;margin-top:6px;}
+  .badge.live{background:#e7f1ea;color:var(--good);}
+  .badge.sample{background:#fbecd2;color:var(--warn);}
+
+  /* KPI strip */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0 8px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px 16px 14px;position:relative;overflow:hidden;}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--navy);}
+  .kpi .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--gray);margin-bottom:8px;}
+  .kpi .val{font-size:27px;font-weight:700;color:var(--navy);line-height:1;}
+  .kpi .delta{font-family:var(--mono);font-size:12px;margin-top:7px;display:flex;align-items:center;gap:5px;}
+  .kpi .delta.up{color:var(--good);}
+  .kpi .delta.down{color:var(--bad);}
+  .kpi .asof{font-family:var(--mono);font-size:10px;color:#9a978f;margin-top:6px;}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;margin:26px 0 0;flex-wrap:wrap;border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase;
+    padding:10px 15px;border:none;background:none;color:var(--gray);cursor:pointer;
+    border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .tab[aria-selected="true"]{color:var(--navy);border-bottom-color:var(--gold);font-weight:700;}
+  .tab:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+
+  .panel{display:none;padding-top:22px;}
+  .panel.active{display:block;}
+
+  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 20px 14px;}
+  .chart-title{font-size:16px;font-weight:700;color:var(--navy);margin:0 0 2px;}
+  .chart-note{font-size:12px;color:var(--gray);margin:0 0 16px;}
+  .chart-box{position:relative;height:340px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+  /* Risk callout */
+  .risk{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;
+    background:var(--navy);color:#fff;border-radius:10px;padding:20px 22px;margin-top:18px;}
+  .risk .score{font-size:44px;font-weight:700;line-height:1;font-family:var(--mono);}
+  .risk .score small{display:block;font-size:11px;letter-spacing:.1em;opacity:.7;text-transform:uppercase;margin-top:4px;}
+  .risk .read h3{margin:0 0 4px;font-size:15px;color:var(--gold);}
+  .risk .read p{margin:0;font-size:13px;opacity:.92;line-height:1.5;}
+
+  footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:10.5px;color:#9a978f;line-height:1.6;}
+  .err{font-size:12px;color:var(--bad);font-family:var(--mono);}
+
+  /* Property-type breakout */
+  .type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .type-card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px;position:relative;}
+  .type-card.stub{border-style:dashed;border-color:#d8d3c6;background:#fcfbf8;}
+  .type-card .tc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;}
+  .type-card .tc-name{font-size:14px;font-weight:700;color:var(--navy);}
+  .type-card .tc-val{font-size:24px;font-weight:700;color:var(--navy);line-height:1.1;margin-top:6px;}
+  .type-card .tc-val.muted{color:#b7b2a6;}
+  .type-card .tc-delta{font-family:var(--mono);font-size:11.5px;margin-top:5px;}
+  .type-card .tc-delta.up{color:var(--good);} .type-card .tc-delta.down{color:var(--bad);}
+  .type-card .tc-spark{height:46px;margin-top:10px;}
+  .pill{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+    padding:2px 6px;border-radius:3px;white-space:nowrap;}
+  .pill.real{background:#e7f1ea;color:var(--good);}
+  .pill.illus{background:#fbecd2;color:var(--warn);}
+  .pill.proxy{background:#e4eef8;color:var(--blue);}
+  .type-note{font-size:11.5px;color:var(--gray);margin:14px 0 0;line-height:1.5;}
+  @media(max-width:760px){.type-grid{grid-template-columns:1fr;}}
+
+  @media(max-width:760px){
+    .kpis{grid-template-columns:1fr 1fr;}
+    .grid2{grid-template-columns:1fr;}
+    h1{font-size:24px;}
+    .chart-box{height:280px;}
+  }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap" id="root">
+  <header class="head">
+    <div>
+      <p class="eyebrow">SouthState Correspondent · Market Intelligence</p>
+      <h1>CRE Market Risk Monitor</h1>
+      <p class="sub">National commercial real estate price, credit, and lending indicators for community bank balance-sheet context.</p>
+    </div>
+    <div class="stamp">
+      <div id="stamp-date">Loading…</div>
+      <span class="badge sample" id="src-badge">Sample data</span>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <div class="risk" id="risk" hidden>
+    <div class="score" id="risk-score">—<small>Stress read</small></div>
+    <div class="read"><h3 id="risk-head">—</h3><p id="risk-body">—</p></div>
+  </div>
+
+  <div class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" aria-selected="true"  data-tab="prices">Prices</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="types">Property Types</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="credit">Credit Stress</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="lending">Lending Conditions</button>
+  </div>
+
+  <section class="panel active" id="panel-prices" role="tabpanel">
+    <div class="chart-card">
+      <h2 class="chart-title">CRE price indices — all property & multifamily</h2>
+      <p class="chart-note">Federal Reserve Z.1 price indices, quarterly. Indexed levels.</p>
+      <div class="chart-box"><canvas id="c-prices"></canvas></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="chart-card">
+      <h2 class="chart-title">Year-over-year price change</h2>
+      <p class="chart-note">Positive bars = appreciation; negative = decline. Watch sustained negatives.</p>
+      <div class="chart-box"><canvas id="c-yoy"></canvas></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-types" role="tabpanel">
+    <div class="type-grid" id="type-real"></div>
+    <p class="type-note">The cards above are FRED CRE series. FRED publishes no office/retail/industrial <em>price</em> indices — those are licensed (Green Street, CoStar, NCREIF/RCA). The cards below are public <strong>demand proxies</strong>: they move with each sector but are not its valuation. Office uses office-using employment (financial + professional/business + information); retail uses advance retail sales; industrial uses the industrial production index.</p>
+    <div style="height:14px"></div>
+    <div class="type-grid" id="type-stub"></div>
+  </section>
+
+  <section class="panel" id="panel-credit" role="tabpanel">
+    <div class="grid2">
+      <div class="chart-card">
+        <h2 class="chart-title">CRE loan delinquency rate</h2>
+        <p class="chart-note">All commercial banks, excl. farmland. Leading credit-stress signal.</p>
+        <div class="chart-box"><canvas id="c-delinq"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h2 class="chart-title">CRE loans outstanding</h2>
+        <p class="chart-note">Aggregate balances, all commercial banks.</p>
+        <div class="chart-box"><canvas id="c-loans"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-lending" role="tabpanel">
+    <div class="chart-card">
+      <h2 class="chart-title">Banks tightening CRE lending standards</h2>
+      <p class="chart-note">Senior Loan Officer Survey, net % tightening (multifamily). Above zero = credit getting harder to get.</p>
+      <div class="chart-box"><canvas id="c-tighten"></canvas></div>
+    </div>
+  </section>
+
+  <footer>
+    Source: Federal Reserve Bank of St. Louis (FRED), public-domain economic series. National aggregates; not market- or property-level data.
+    Indicators are for context only and are not investment advice or a credit decision.
+    <span id="foot-meta"></span>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  // ---- config ----
+  var WORKER = "https://fred-proxy.jameswspence.workers.dev/bundle?start=2006-01-01";
+  var WORKER_TYPES = "https://fred-proxy.jameswspence.workers.dev/types?start=2006-01-01";
+  var NAVY="#002D72", GOLD="#FFBF3F", BLUE="#0960BB", GRAY="#4C4C4C", GOOD="#1f7a52", BAD="#b3261e";
+
+  // ---- iframe auto-height ----
+  function postHeight(){
+    var h = document.getElementById('root').offsetHeight + 8;
+    parent.postMessage({type:'RESIZE', height:h, frame:'cre-risk'}, '*');
+  }
+  var ro = new ResizeObserver(postHeight);
+  ro.observe(document.getElementById('root'));
+  window.addEventListener('load', postHeight);
+
+  // ---- tabs ----
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){x.setAttribute('aria-selected','false');});
+      t.setAttribute('aria-selected','true');
+      document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+      document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+      if(t.dataset.tab==='types' && window.__redrawTypes){ window.__redrawTypes(); }
+      setTimeout(postHeight,40);
+    });
+  });
+
+  // ---- sample fallback (quarterly-ish, illustrative only) ----
+  var SAMPLE = {
+    generated:new Date().toISOString(), sample:true,
+    series:[
+      {key:'cre_price_index',meta:{label:'All CRE'},units:'Index',frequency:'Q',
+        observations:gen(2015,1,[230,236,244,251,258,266,272,279,288,297,305,312,318,309,298,289,283,279,281,285,288,291])},
+      {key:'multifamily_index',meta:{label:'Multifamily'},units:'Index',frequency:'Q',
+        observations:gen(2015,1,[210,219,229,239,249,260,270,281,294,307,318,326,330,318,302,290,283,280,283,287,290,293])},
+      {key:'cre_price_yoy',meta:{label:'YoY %'},units:'% YoY',frequency:'Q',
+        observations:gen(2015,1,[8.1,7.6,7.0,6.4,6.0,5.7,5.2,4.9,4.6,4.2,3.8,2.9,1.1,-2.8,-6.1,-7.4,-5.0,-3.6,-0.7,2.1,2.5,2.4])},
+      {key:'delinquency_rate',meta:{label:'Delinquency'},units:'%',frequency:'Q',
+        observations:gen(2015,1,[1.4,1.3,1.2,1.1,1.0,0.95,0.9,0.85,0.8,0.78,0.75,0.9,1.05,1.2,1.35,1.45,1.55,1.62,1.58,1.5,1.44,1.41])},
+      {key:'cre_loans',meta:{label:'CRE Loans'},units:'$B',frequency:'M',
+        observations:gen(2015,1,[1620,1700,1790,1880,1970,2060,2150,2240,2330,2420,2510,2600,2690,2740,2780,2810,2830,2845,2855,2862,2868,2872])},
+      {key:'cd_loans',meta:{label:'C&D Loans'},units:'$B',frequency:'M',
+        observations:gen(2015,1,[290,305,322,340,358,375,392,408,422,436,448,460,472,480,486,490,492,491,489,487,486,485])},
+      {key:'tightening_mf',meta:{label:'Net % Tightening'},units:'Net %',frequency:'Q',
+        observations:gen(2015,1,[2,1,0,-1,0,3,5,4,2,1,0,8,22,46,64,58,40,28,16,9,5,4])}
+    ]
+  };
+  function gen(y,q,vals){
+    var out=[],yy=y,qq=q;
+    for(var i=0;i<vals.length;i++){
+      var m=((qq-1)*3)+1;
+      out.push({date:yy+'-'+String(m).padStart(2,'0')+'-01', value:vals[i]});
+      qq++; if(qq>4){qq=1;yy++;}
+    }
+    return out;
+  }
+
+  // ---- load ----
+  fetch(WORKER,{mode:'cors'})
+    .then(function(r){ if(!r.ok) throw new Error('worker '+r.status); return r.json(); })
+    .then(function(d){ render(d, false); })
+    .catch(function(){ render(SAMPLE, true); });
+
+  function byKey(d,k){
+    var s=(d.series||[]).find(function(x){return x.key===k;});
+    return (s && s.observations && s.observations.length) ? s : null;
+  }
+  function last(s){ return s? s.observations[s.observations.length-1] : null; }
+  function prevYear(s){
+    if(!s) return null;
+    var n=s.observations.length, step = (s.frequency==='M')?12:4;
+    return s.observations[Math.max(0,n-1-step)] || null;
+  }
+  function fmt(v,dp){ return (v==null||isNaN(v))?'—':Number(v).toLocaleString('en-US',{maximumFractionDigits:dp==null?1:dp}); }
+
+  function render(d, isSample){
+    // badge + stamp
+    var badge=document.getElementById('src-badge');
+    badge.className = 'badge ' + (isSample?'sample':'live');
+    badge.textContent = isSample?'Sample data':'Live · FRED';
+    document.getElementById('stamp-date').textContent =
+      'As of ' + new Date(d.generated||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    document.getElementById('foot-meta').textContent =
+      isSample ? ' · Showing illustrative sample values — connect Worker for live data.' : ' · Auto-refreshes from FRED.';
+
+    var price=byKey(d,'cre_price_index'), mf=byKey(d,'multifamily_index'),
+        yoy=byKey(d,'cre_price_yoy'), del=byKey(d,'delinquency_rate'),
+        loans=byKey(d,'cre_loans'), tight=byKey(d,'tightening_mf');
+
+    // KPIs
+    var kpiDefs=[
+      {s:price,lbl:'CRE Price Index',dp:0,inv:false},
+      {s:yoy,  lbl:'Price YoY',dp:1,suffix:'%',isLevel:true,inv:false},
+      {s:del,  lbl:'Delinquency Rate',dp:2,suffix:'%',isLevel:true,inv:true},
+      {s:tight,lbl:'Net % Tightening',dp:0,suffix:'%',isLevel:true,inv:true}
+    ];
+    var html='';
+    kpiDefs.forEach(function(k){
+      var L=last(k.s), P=prevYear(k.s);
+      var val = L? fmt(L.value,k.dp)+(k.suffix||'') : '—';
+      var delta='', cls='';
+      if(L&&P){
+        var diff = L.value - P.value;
+        var up = diff>=0;
+        // for "inverse" metrics (delinquency, tightening) up is bad
+        cls = (k.inv ? (up?'down':'up') : (up?'up':'down'));
+        var arrow = up?'▲':'▼';
+        delta = arrow+' '+fmt(Math.abs(diff),k.dp)+(k.isLevel?' pts':'')+' YoY';
+      }
+      var asof = L? new Date(L.date).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '';
+      html+='<div class="kpi"><div class="lbl">'+k.lbl+'</div><div class="val">'+val+'</div>'+
+            (delta?'<div class="delta '+cls+'">'+delta+'</div>':'')+
+            (asof?'<div class="asof">'+asof+'</div>':'')+'</div>';
+    });
+    document.getElementById('kpis').innerHTML=html;
+
+    // risk read — simple composite of delinquency + tightening direction
+    renderRisk(del, tight, yoy);
+
+    // property-type breakout (real FRED cards + illustrative stubs)
+    renderTypes(d, price, mf, byKey(d,'cd_loans'), isSample);
+
+    // charts
+    Chart.defaults.font.family="'Cera Pro',sans-serif";
+    Chart.defaults.font.size=11;
+    Chart.defaults.color=GRAY;
+
+    lineChart('c-prices',
+      [seriesXY(price), seriesXY(mf)],
+      ['All CRE', 'Multifamily'], [NAVY, BLUE], false);
+
+    barChart('c-yoy', seriesXY(yoy), GOLD, '%');
+
+    lineChart('c-delinq', [seriesXY(del)], ['Delinquency %'], [BAD], false, '%');
+    lineChart('c-loans',  [seriesXY(loans)], ['CRE loans ($B)'], [NAVY], true);
+    barChart('c-tighten', seriesXY(tight), BLUE, '%', true);
+
+    setTimeout(postHeight,60);
+  }
+
+  function seriesXY(s){
+    if(!s) return [];
+    return s.observations.map(function(o){return {x:o.date,y:o.value};});
+  }
+
+  function renderTypes(d, price, mf, cd, isSample){
+    var real=[
+      {name:'All CRE', s:price, dp:0, unit:''},
+      {name:'Multifamily', s:mf, dp:0, unit:''},
+      {name:'Construction & Land Dev', s:cd, dp:0, unit:'', prefix:'$', suffix:'B'}
+    ];
+    var realHtml='', sparks=[];
+    real.forEach(function(t,i){
+      var L=last(t.s), P=prevYear(t.s);
+      var val = L? (t.prefix||'')+fmt(L.value,t.dp)+(t.suffix||'') : '—';
+      var delta='', cls='';
+      if(L&&P){ var diff=((L.value-P.value)/P.value)*100; var up=diff>=0;
+        cls=up?'up':'down'; delta=(up?'▲ ':'▼ ')+fmt(Math.abs(diff),1)+'% YoY'; }
+      var cid='spark-real-'+i;
+      sparks.push({id:cid, s:t.s, color:i===2?BLUE:(i===1?BLUE:NAVY)});
+      realHtml+='<div class="type-card"><div class="tc-head"><span class="tc-name">'+t.name+
+        '</span><span class="pill real">FRED · live</span></div>'+
+        '<div class="tc-val">'+val+'</div>'+
+        (delta?'<div class="tc-delta '+cls+'">'+delta+'</div>':'<div class="tc-delta">&nbsp;</div>')+
+        '<div class="tc-spark"><canvas id="'+cid+'"></canvas></div></div>';
+    });
+    document.getElementById('type-real').innerHTML=realHtml;
+
+    // illustrative slots → replaced by live proxy data from /types
+    var stubEl=document.getElementById('type-stub');
+    stubEl.innerHTML='<div class="type-card stub"><div class="tc-val muted">Loading proxies…</div></div>';
+
+    var proxyMeta={office:{name:'Office',hint:'office-using jobs'},
+                   retail:{name:'Retail',hint:'retail sales'},
+                   industrial:{name:'Industrial',hint:'industrial production'}};
+    fetch(WORKER_TYPES,{mode:'cors'})
+      .then(function(r){ if(!r.ok) throw new Error('types '+r.status); return r.json(); })
+      .then(function(td){ renderProxies(td, proxyMeta, false); })
+      .catch(function(){ renderProxies(PROXY_SAMPLE, proxyMeta, true); });
+
+    // draw real-card sparklines after DOM paint; expose redraw for tab activation
+    window.__typeSparks = sparks;
+    window.__redrawTypes = function(){
+      window.__typeSparks.forEach(function(sp){ sparkline(sp.id, sp.s, sp.color); });
+      if(window.__proxySparks){ window.__proxySparks.forEach(function(sp){ sparklineObs(sp.id, sp.obs, sp.color); }); }
+    };
+    sparks.forEach(function(sp){ sparkline(sp.id, sp.s, sp.color); });
+  }
+
+  // illustrative proxy fallback (used only if /types unreachable)
+  var PROXY_SAMPLE={kind:'fundamentals_proxy',proxies:[
+    {key:'office',label:'Office-using employment',unit:'K jobs',frequency:'M',
+      observations:gen(2015,1,[33500,34100,34800,35400,36000,36500,37000,37400,37700,37100,36400,37200,38000,38600,39000,39300,39500,39600,39650,39700,39720,39740])},
+    {key:'retail',label:'Retail sales',unit:'$M',frequency:'M',
+      observations:gen(2015,1,[440000,452000,465000,478000,491000,505000,519000,534000,549000,560000,575000,640000,700000,712000,720000,724000,726000,727000,728000,729000,730000,731000])},
+    {key:'industrial',label:'Industrial production',unit:'Index',frequency:'M',
+      observations:gen(2015,1,[101,100,99,99,100,101,102,103,104,99,94,101,103,103,102,102,103,103,103,103,103,103])}
+  ]};
+
+  function renderProxies(td, meta, isSample){
+    var arr=td.proxies||[];
+    var html='', sparks=[];
+    ['office','retail','industrial'].forEach(function(key,i){
+      var p=arr.find(function(x){return x.key===key;});
+      var m=meta[key];
+      if(!p||!p.observations||!p.observations.length){
+        html+='<div class="type-card stub"><div class="tc-head"><span class="tc-name">'+m.name+
+          '</span><span class="pill illus">Unavailable</span></div>'+
+          '<div class="tc-val muted">—</div><div class="tc-delta">Proxy feed error</div>'+
+          '<div class="tc-spark"></div></div>';
+        return;
+      }
+      var L=p.observations[p.observations.length-1];
+      var step=(p.frequency==='M')?12:4;
+      var P=p.observations[Math.max(0,p.observations.length-1-step)];
+      var val=fmt(L.value,0), delta='', cls='';
+      if(L&&P){var diff=((L.value-P.value)/P.value)*100;var up=diff>=0;
+        cls=up?'up':'down';delta=(up?'▲ ':'▼ ')+fmt(Math.abs(diff),1)+'% YoY';}
+      var cid='spark-px-'+i;
+      sparks.push({id:cid,obs:p.observations,color:BLUE});
+      html+='<div class="type-card"><div class="tc-head"><span class="tc-name">'+m.name+
+        '</span><span class="pill proxy">'+(isSample?'Proxy · sample':'Proxy · FRED')+'</span></div>'+
+        '<div class="tc-val">'+val+'</div>'+
+        (delta?'<div class="tc-delta '+cls+'">'+delta+'</div>':'<div class="tc-delta">&nbsp;</div>')+
+        '<div style="font-family:var(--mono);font-size:9.5px;color:#9a978f;margin-top:3px;">'+m.hint+'</div>'+
+        '<div class="tc-spark"><canvas id="'+cid+'"></canvas></div></div>';
+    });
+    document.getElementById('type-stub').innerHTML=html;
+    window.__proxySparks=sparks;
+    sparks.forEach(function(sp){ sparklineObs(sp.id, sp.obs, sp.color); });
+  }
+
+  function sparkline(id, s, color){
+    var ctx=document.getElementById(id); if(!ctx||!s) return;
+    var existing=Chart.getChart(ctx); if(existing) existing.destroy();
+    var data=s.observations.map(function(o){return {x:o.date,y:o.value};});
+    new Chart(ctx,{type:'line',data:{datasets:[{data:data,borderColor:color,
+      borderWidth:1.5,pointRadius:0,tension:.3,fill:false}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{x:{type:'time',display:false},y:{display:false}}}});
+  }
+
+  function sparklineObs(id, obs, color){
+    var ctx=document.getElementById(id); if(!ctx||!obs) return;
+    var existing=Chart.getChart(ctx); if(existing) existing.destroy();
+    var data=obs.map(function(o){return {x:o.date,y:o.value};});
+    new Chart(ctx,{type:'line',data:{datasets:[{data:data,borderColor:color,
+      borderWidth:1.5,pointRadius:0,tension:.3,fill:false}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{x:{type:'time',display:false},y:{display:false}}}});
+  }
+
+  function renderRisk(del,tight,yoy){
+    if(!del && !tight){ return; }
+    var dL=last(del), tL=last(tight), yL=last(yoy);
+    var score=0, notes=[];
+    if(dL){ if(dL.value>2){score+=2;notes.push('elevated delinquencies');}
+            else if(dL.value>1.3){score+=1;notes.push('rising delinquencies');} }
+    if(tL){ if(tL.value>30){score+=2;notes.push('banks sharply tightening');}
+            else if(tL.value>5){score+=1;notes.push('credit conditions firming');} }
+    if(yL && yL.value<0){score+=1;notes.push('prices declining year-over-year');}
+    var labels=['Low','Low–Moderate','Moderate','Elevated','High'];
+    var idx=Math.min(score,4);
+    var box=document.getElementById('risk');
+    box.hidden=false;
+    document.getElementById('risk-score').innerHTML=labels[idx].split('–')[0]+'<small>Stress read</small>';
+    document.getElementById('risk-head').textContent='National CRE stress: '+labels[idx];
+    document.getElementById('risk-body').textContent= notes.length
+      ? 'Signals: '+notes.join(', ')+'. National aggregates — local exposure varies.'
+      : 'Indicators within historically normal ranges. Monitor local concentration regardless.';
+  }
+
+  function baseOpts(extraY){
+    return {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{display:true,position:'bottom',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,padding:14}},
+        tooltip:{backgroundColor:NAVY,padding:10,cornerRadius:6,titleFont:{weight:'700'}} },
+      scales:{
+        x:{type:'time',time:{unit:'year'},grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:9}},
+        y:Object.assign({grid:{color:'#eee'},ticks:{}}, extraY||{})
+      }
+    };
+  }
+  function lineChart(id,datasetsXY,labels,colors,fill,unit){
+    var ctx=document.getElementById(id); if(!ctx) return;
+    var ds=datasetsXY.map(function(data,i){
+      return {label:labels[i],data:data,borderColor:colors[i],backgroundColor:colors[i]+'22',
+        borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.25,fill:!!fill};
+    });
+    var opts=baseOpts(unit?{ticks:{callback:function(v){return v+unit;}}}:null);
+    new Chart(ctx,{type:'line',data:{datasets:ds},options:opts});
+  }
+  function barChart(id,dataXY,color,unit,signed){
+    var ctx=document.getElementById(id); if(!ctx) return;
+    var ds=[{label:'',data:dataXY,
+      backgroundColor:dataXY.map(function(p){return (signed&&p.y<0)?BAD:color;}),
+      borderRadius:2,barPercentage:.95,categoryPercentage:.95}];
+    var opts=baseOpts(unit?{ticks:{callback:function(v){return v+unit;}}}:null);
+    opts.plugins.legend.display=false;
+    new Chart(ctx,{type:'bar',data:{datasets:ds},options:opts});
+  }
+})();
+</script>
+</body>
+</html>
