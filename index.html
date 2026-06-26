@@ -6,9 +6,29 @@
 <title>CRE Market Risk Monitor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* ---- Type: Inter (UI) + tabular mono (data). Cera Pro benched for crisp-institutional register. ---- */
+  /* ---- Cera Pro (brand UI font) loaded from sscdwidgets.github.io; Roboto Mono retained for tabular data ---- */
+  @font-face{font-family:'Cera Pro';font-weight:300;font-style:normal;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Light.ttf') format('truetype');}
+  @font-face{font-family:'Cera Pro';font-weight:300;font-style:italic;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-LightItalic.ttf') format('truetype');}
+  @font-face{font-family:'Cera Pro';font-weight:400;font-style:normal;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Regular.ttf') format('truetype');}
+  @font-face{font-family:'Cera Pro';font-weight:400;font-style:italic;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Italic.ttf') format('truetype');}
+  @font-face{font-family:'Cera Pro';font-weight:500;font-style:normal;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Medium.ttf') format('truetype');}
+  @font-face{font-family:'Cera Pro';font-weight:500;font-style:italic;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-MediumItalic.ttf') format('truetype');}
+  @font-face{font-family:'Cera Pro';font-weight:700;font-style:normal;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Bold.ttf') format('truetype');}
+  @font-face{font-family:'Cera Pro';font-weight:700;font-style:italic;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-BoldItalic.ttf') format('truetype');}
+  @font-face{font-family:'Cera Pro';font-weight:900;font-style:normal;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Black.ttf') format('truetype');}
+  @font-face{font-family:'Cera Pro';font-weight:900;font-style:italic;font-display:swap;
+    src:url('https://sscdwidgets.github.io/fonts/CeraPro-BlackItalic.ttf') format('truetype');}
   :root{
     --navy:#002D72; --gold:#FFBF3F; --blue:#0960BB;
     --ink:#0A1733; --ink-2:#42506B; --ink-3:#7A8699;
@@ -17,7 +37,7 @@
     --pos:#0E9F6E; --pos-bg:#E6F6EF;
     --warn:#D97706; --warn-bg:#FCF1E2;
     --neg:#E02424; --neg-bg:#FDEAEA;
-    --ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --ui:'Cera Pro',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     --mono:'Roboto Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
     --r:8px;
   }
@@ -34,9 +54,9 @@
   .head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
     padding:18px 0;border-bottom:1px solid var(--line);margin-bottom:24px;}
   .brand{display:flex;align-items:center;gap:12px;}
-  .brand .tick{width:4px;height:30px;border-radius:2px;background:var(--navy);}
+  .brand .tick{width:4px;height:30px;border-radius:2px;background:var(--gold);}
   .brand .wm{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 2px;}
-  .brand h1{font-size:19px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0;line-height:1.1;}
+  .brand h1{font-size:19px;font-weight:600;letter-spacing:-.01em;color:var(--navy);margin:0;line-height:1.1;}
   .head-right{display:flex;align-items:center;gap:14px;}
   .stamp{font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:right;white-space:nowrap;line-height:1.5;}
   .chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:500;
@@ -147,7 +167,6 @@
     <div class="brand">
       <span class="tick"></span>
       <div>
-        <p class="wm">SouthState Correspondent · Market Intelligence</p>
         <h1>CRE Market Risk Monitor</h1>
       </div>
     </div>
@@ -212,7 +231,7 @@
   <section class="panel" id="panel-lending" role="tabpanel">
     <div class="chart-card">
       <h2 class="chart-title">Banks tightening CRE lending standards</h2>
-      <p class="chart-note">Senior Loan Officer Survey, net % tightening (multifamily). Above zero = credit getting harder to get.</p>
+      <p class="chart-note">Senior Loan Officer Survey, net % of domestic banks tightening, by CRE category. Above zero = credit getting harder to get; sustained climbs lead credit stress.</p>
       <div class="chart-box"><canvas id="c-tighten"></canvas></div>
     </div>
   </section>
@@ -273,8 +292,12 @@
         observations:gen(2015,1,[1620,1700,1790,1880,1970,2060,2150,2240,2330,2420,2510,2600,2690,2740,2780,2810,2830,2845,2855,2862,2868,2872])},
       {key:'cd_loans',meta:{label:'C&D Loans'},units:'$B',frequency:'M',
         observations:gen(2015,1,[290,305,322,340,358,375,392,408,422,436,448,460,472,480,486,490,492,491,489,487,486,485])},
-      {key:'tightening_mf',meta:{label:'Net % Tightening'},units:'Net %',frequency:'Q',
-        observations:gen(2015,1,[2,1,0,-1,0,3,5,4,2,1,0,8,22,46,64,58,40,28,16,9,5,4])}
+      {key:'tightening_mf',meta:{label:'Multifamily'},units:'Net %',frequency:'Q',
+        observations:gen(2015,1,[2,1,0,-1,0,3,5,4,2,1,0,8,22,46,64,58,40,28,16,9,5,4])},
+      {key:'tightening_cd',meta:{label:'Construction & Land Dev'},units:'Net %',frequency:'Q',
+        observations:gen(2015,1,[6,4,3,1,2,6,9,8,5,3,2,14,30,55,71,66,52,40,28,18,12,10])},
+      {key:'tightening_nres',meta:{label:'Nonfarm Nonresidential'},units:'Net %',frequency:'Q',
+        observations:gen(2015,1,[3,2,1,0,1,4,7,6,3,2,1,11,26,50,67,60,44,32,20,12,7,6])}
     ]
   };
   function gen(y,q,vals){
@@ -328,7 +351,8 @@
 
     var price=byKey(d,'cre_price_index'), mf=byKey(d,'multifamily_index'),
         yoy=byKey(d,'cre_price_yoy'), del=byKey(d,'delinquency_rate'),
-        loans=byKey(d,'cre_loans'), tight=byKey(d,'tightening_mf');
+        loans=byKey(d,'cre_loans'), tight=byKey(d,'tightening_mf'),
+        tightCD=byKey(d,'tightening_cd'), tightNR=byKey(d,'tightening_nres');
 
     // KPIs
     var kpiDefs=[
@@ -366,7 +390,7 @@
     renderTypes(d, price, mf, byKey(d,'cd_loans'), isSample);
 
     // charts
-    Chart.defaults.font.family="'Inter',sans-serif";
+    Chart.defaults.font.family="'Cera Pro',sans-serif";
     Chart.defaults.font.size=11;
     Chart.defaults.color=GRAY;
 
@@ -378,7 +402,10 @@
 
     lineChart('c-delinq', [seriesXY(del)], ['Delinquency %'], [BAD], false, '%');
     lineChart('c-loans',  [seriesXY(loans)], ['CRE loans ($B)'], [NAVY], true);
-    barChart('c-tighten', seriesXY(tight), BLUE, '%', true);
+    lineChart('c-tighten',
+      [seriesXY(tight), seriesXY(tightCD), seriesXY(tightNR)],
+      ['Multifamily', 'Construction & Land Dev', 'Nonfarm Nonresidential'],
+      [NAVY, BLUE, GOLD], false, '%');
 
     setTimeout(postHeight,60);
   }
