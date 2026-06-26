@@ -4,113 +4,138 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CRE Market Risk Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  @font-face{
-    font-family:'Cera Pro';
-    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Regular.woff2') format('woff2'),
-        url('https://sscdwidgets.github.io/fonts/CeraPro-Regular.ttf') format('truetype');
-    font-weight:400;font-display:swap;
-  }
-  @font-face{
-    font-family:'Cera Pro';
-    src:url('https://sscdwidgets.github.io/fonts/CeraPro-Bold.woff2') format('woff2'),
-        url('https://sscdwidgets.github.io/fonts/CeraPro-Bold.ttf') format('truetype');
-    font-weight:700;font-display:swap;
-  }
+  /* ---- Type: Inter (UI) + tabular mono (data). Cera Pro benched for crisp-institutional register. ---- */
   :root{
-    --navy:#002D72; --gold:#FFBF3F; --blue:#0960BB; --gray:#4C4C4C;
-    --ink:#0c1b33; --paper:#fbfaf7; --line:#e6e3da; --card:#ffffff;
-    --good:#1f7a52; --warn:#c98a00; --bad:#b3261e;
-    --mono:ui-monospace,'JetBrains Mono',SFMono-Regular,Menlo,monospace;
+    --navy:#002D72; --gold:#FFBF3F; --blue:#0960BB;
+    --ink:#0A1733; --ink-2:#42506B; --ink-3:#7A8699;
+    --canvas:#FFFFFF; --panel:#F7F8FA; --panel-2:#F0F2F6;
+    --line:#E6E9F0; --line-2:#D7DCE6;
+    --pos:#0E9F6E; --pos-bg:#E6F6EF;
+    --warn:#D97706; --warn-bg:#FCF1E2;
+    --neg:#E02424; --neg-bg:#FDEAEA;
+    --ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'Roboto Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --r:8px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;}
   body{
-    font-family:'Cera Pro',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-    color:var(--ink);background:var(--paper);
-    -webkit-font-smoothing:antialiased;line-height:1.45;
+    font-family:var(--ui); color:var(--ink); background:var(--canvas);
+    -webkit-font-smoothing:antialiased; line-height:1.45;
+    font-feature-settings:'tnum' 1,'cv05' 1;
   }
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 40px;}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px 48px;}
 
-  /* Header */
-  .head{display:flex;justify-content:space-between;align-items:flex-end;
-    gap:16px;flex-wrap:wrap;border-bottom:3px solid var(--navy);padding-bottom:16px;}
-  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;
-    text-transform:uppercase;color:var(--blue);margin:0 0 6px;}
-  h1{font-size:30px;font-weight:700;color:var(--navy);margin:0;letter-spacing:-.01em;line-height:1.05;}
-  .sub{font-size:13.5px;color:var(--gray);margin:7px 0 0;max-width:46ch;}
-  .stamp{font-family:var(--mono);font-size:11px;color:var(--gray);text-align:right;white-space:nowrap;}
-  .badge{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
-    text-transform:uppercase;padding:3px 8px;border-radius:3px;margin-top:6px;}
-  .badge.live{background:#e7f1ea;color:var(--good);}
-  .badge.sample{background:#fbecd2;color:var(--warn);}
+  /* ---- Top bar ---- */
+  .head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+    padding:18px 0;border-bottom:1px solid var(--line);margin-bottom:24px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .tick{width:4px;height:30px;border-radius:2px;background:var(--navy);}
+  .brand .wm{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 2px;}
+  .brand h1{font-size:19px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0;line-height:1.1;}
+  .head-right{display:flex;align-items:center;gap:14px;}
+  .stamp{font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:right;white-space:nowrap;line-height:1.5;}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:500;
+    letter-spacing:.04em;text-transform:uppercase;padding:5px 10px;border-radius:100px;border:1px solid transparent;}
+  .chip .dot{width:6px;height:6px;border-radius:50%;}
+  .badge{ /* alias kept for JS */ }
+  .chip.live,.badge.live{background:var(--pos-bg);color:var(--pos);border-color:#BCE6D4;}
+  .chip.live .dot{background:var(--pos);animation:pulse 2s infinite;}
+  .chip.sample,.badge.sample{background:var(--warn-bg);color:var(--warn);border-color:#F2D9B0;}
+  .chip.sample .dot{background:var(--warn);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 
-  /* KPI strip */
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0 8px;}
-  .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;
-    padding:16px 16px 14px;position:relative;overflow:hidden;}
-  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--navy);}
-  .kpi .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
-    text-transform:uppercase;color:var(--gray);margin-bottom:8px;}
-  .kpi .val{font-size:27px;font-weight:700;color:var(--navy);line-height:1;}
-  .kpi .delta{font-family:var(--mono);font-size:12px;margin-top:7px;display:flex;align-items:center;gap:5px;}
-  .kpi .delta.up{color:var(--good);}
-  .kpi .delta.down{color:var(--bad);}
-  .kpi .asof{font-family:var(--mono);font-size:10px;color:#9a978f;margin-top:6px;}
+  .lede{font-size:13px;color:var(--ink-2);margin:-8px 0 22px;max-width:62ch;line-height:1.55;}
 
-  /* Tabs */
-  .tabs{display:flex;gap:4px;margin:26px 0 0;flex-wrap:wrap;border-bottom:1px solid var(--line);}
-  .tab{font-family:var(--mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase;
-    padding:10px 15px;border:none;background:none;color:var(--gray);cursor:pointer;
-    border-bottom:2px solid transparent;margin-bottom:-1px;}
-  .tab[aria-selected="true"]{color:var(--navy);border-bottom-color:var(--gold);font-weight:700;}
-  .tab:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  /* ---- KPI rail: hairline-divided row, not floating cards ---- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line);border-radius:var(--r);background:var(--canvas);overflow:hidden;margin-bottom:8px;}
+  .kpi{padding:16px 18px;border-left:1px solid var(--line);position:relative;}
+  .kpi:first-child{border-left:none;}
+  .kpi .lbl{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;}
+  .kpi .val{font-size:26px;font-weight:600;color:var(--ink);line-height:1;letter-spacing:-.02em;font-feature-settings:'tnum' 1;}
+  .kpi .delta{font-family:var(--mono);font-size:11.5px;font-weight:500;margin-top:8px;display:flex;align-items:center;gap:5px;}
+  .kpi .delta.up{color:var(--pos);} .kpi .delta.down{color:var(--neg);}
+  .kpi .asof{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);margin-top:5px;}
+  .kpi::after{content:"";position:absolute;left:18px;right:18px;bottom:0;height:2px;background:var(--gold);opacity:0;}
+  .kpi.flag::after{opacity:1;}
+
+  /* ---- Risk banner ---- */
+  .risk{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;
+    background:var(--navy);color:#fff;border-radius:var(--r);padding:20px 24px;margin-top:16px;
+    background-image:linear-gradient(135deg,#002D72 0%,#013a8f 100%);}
+  .risk .score{font-size:34px;font-weight:600;line-height:1;font-family:var(--ui);letter-spacing:-.02em;
+    padding-right:20px;border-right:1px solid rgba(255,255,255,.18);}
+  .risk .score small{display:block;font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.12em;
+    opacity:.6;text-transform:uppercase;margin-top:6px;}
+  .risk .read h3{margin:0 0 4px;font-size:14px;font-weight:600;color:var(--gold);}
+  .risk .read p{margin:0;font-size:12.5px;opacity:.9;line-height:1.5;color:#D6E0F0;}
+
+  /* ---- Tabs: segmented underline ---- */
+  .tabs{display:flex;gap:2px;margin:28px 0 0;flex-wrap:wrap;border-bottom:1px solid var(--line);}
+  .tab{font-family:var(--ui);font-size:13px;font-weight:500;
+    padding:11px 16px;border:none;background:none;color:var(--ink-3);cursor:pointer;
+    border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;}
+  .tab:hover{color:var(--ink-2);}
+  .tab[aria-selected="true"]{color:var(--navy);border-bottom-color:var(--navy);font-weight:600;}
+  .tab:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px 4px 0 0;}
 
   .panel{display:none;padding-top:22px;}
   .panel.active{display:block;}
 
-  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 20px 14px;}
-  .chart-title{font-size:16px;font-weight:700;color:var(--navy);margin:0 0 2px;}
-  .chart-note{font-size:12px;color:var(--gray);margin:0 0 16px;}
+  /* ---- Chart cards ---- */
+  .chart-card{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px 16px;}
+  .chart-title{font-size:15px;font-weight:600;color:var(--ink);margin:0 0 2px;letter-spacing:-.01em;}
+  .chart-note{font-size:12px;color:var(--ink-3);margin:0 0 18px;line-height:1.5;}
   .chart-box{position:relative;height:340px;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .err{font-size:12px;color:var(--neg);font-family:var(--mono);}
 
-  /* Risk callout */
-  .risk{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;
-    background:var(--navy);color:#fff;border-radius:10px;padding:20px 22px;margin-top:18px;}
-  .risk .score{font-size:44px;font-weight:700;line-height:1;font-family:var(--mono);}
-  .risk .score small{display:block;font-size:11px;letter-spacing:.1em;opacity:.7;text-transform:uppercase;margin-top:4px;}
-  .risk .read h3{margin:0 0 4px;font-size:15px;color:var(--gold);}
-  .risk .read p{margin:0;font-size:13px;opacity:.92;line-height:1.5;}
-
-  footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
-    font-family:var(--mono);font-size:10.5px;color:#9a978f;line-height:1.6;}
-  .err{font-size:12px;color:var(--bad);font-family:var(--mono);}
-
-  /* Property-type breakout */
+  /* ---- Property-type / FRED cards ---- */
   .type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-  .type-card{background:var(--card);border:1px solid var(--line);border-radius:10px;
-    padding:16px;position:relative;}
-  .type-card.stub{border-style:dashed;border-color:#d8d3c6;background:#fcfbf8;}
+  .type-card{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);padding:18px;position:relative;}
+  .type-card.stub{border-style:dashed;border-color:var(--line-2);background:var(--panel);}
   .type-card .tc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;}
-  .type-card .tc-name{font-size:14px;font-weight:700;color:var(--navy);}
-  .type-card .tc-val{font-size:24px;font-weight:700;color:var(--navy);line-height:1.1;margin-top:6px;}
-  .type-card .tc-val.muted{color:#b7b2a6;}
-  .type-card .tc-delta{font-family:var(--mono);font-size:11.5px;margin-top:5px;}
-  .type-card .tc-delta.up{color:var(--good);} .type-card .tc-delta.down{color:var(--bad);}
-  .type-card .tc-spark{height:46px;margin-top:10px;}
-  .pill{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;
-    padding:2px 6px;border-radius:3px;white-space:nowrap;}
-  .pill.real{background:#e7f1ea;color:var(--good);}
-  .pill.illus{background:#fbecd2;color:var(--warn);}
-  .pill.proxy{background:#e4eef8;color:var(--blue);}
-  .type-note{font-size:11.5px;color:var(--gray);margin:14px 0 0;line-height:1.5;}
-  @media(max-width:760px){.type-grid{grid-template-columns:1fr;}}
+  .type-card .tc-name{font-size:13px;font-weight:600;color:var(--ink);}
+  .type-card .tc-val{font-size:24px;font-weight:600;color:var(--ink);line-height:1.1;margin-top:8px;letter-spacing:-.02em;font-feature-settings:'tnum' 1;}
+  .type-card .tc-val.muted{color:var(--ink-3);}
+  .type-card .tc-delta{font-family:var(--mono);font-size:11.5px;font-weight:500;margin-top:6px;}
+  .type-card .tc-delta.up{color:var(--pos);} .type-card .tc-delta.down{color:var(--neg);}
+  .type-card .tc-spark{height:46px;margin-top:12px;}
+  .pill{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;
+    padding:3px 7px;border-radius:100px;white-space:nowrap;border:1px solid transparent;}
+  .pill.real{background:var(--pos-bg);color:var(--pos);border-color:#BCE6D4;}
+  .pill.illus{background:var(--warn-bg);color:var(--warn);border-color:#F2D9B0;}
+  .pill.proxy{background:#E7EEF8;color:var(--blue);border-color:#C5D8F0;}
+  .type-note{font-size:11.5px;color:var(--ink-3);margin:16px 0 0;line-height:1.6;}
 
-  @media(max-width:760px){
+  /* ---- Sector signal card ---- */
+  .sig-card{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);padding:18px;}
+  .sig-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .sig-name{font-size:13px;font-weight:600;color:var(--ink);}
+  .sig-score{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink-3);font-feature-settings:'tnum' 1;}
+  .sig-verdict{font-size:20px;font-weight:600;line-height:1.1;margin:10px 0 2px;letter-spacing:-.01em;}
+  .sig-verdict.exp{color:var(--pos);} .sig-verdict.stab{color:var(--ink-2);} .sig-verdict.soft{color:var(--neg);}
+  .sig-sub{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-bottom:13px;font-weight:500;}
+  .gauge{height:5px;border-radius:3px;background:linear-gradient(90deg,#F2C4C0 0%,#EDE4CC 50%,#B6E2CC 100%);position:relative;}
+  .gauge .mark{position:absolute;top:-4px;width:3px;height:13px;border-radius:2px;background:var(--ink);transform:translateX(-50%);transition:left .4s ease;box-shadow:0 0 0 2px var(--canvas);}
+  .gauge-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8.5px;color:var(--ink-3);margin-top:5px;letter-spacing:.03em;}
+  .sig-spark{height:40px;margin-top:12px;}
+  .sig-meth{font-family:var(--mono);font-size:9px;color:var(--ink-3);margin-top:11px;border-top:1px solid var(--line);padding-top:9px;}
+
+  @media(max-width:860px){
     .kpis{grid-template-columns:1fr 1fr;}
-    .grid2{grid-template-columns:1fr;}
-    h1{font-size:24px;}
+    .kpi:nth-child(3){border-left:none;}
+    .kpi:nth-child(n+3){border-top:1px solid var(--line);}
+  }
+  @media(max-width:760px){
+    .type-grid,.grid2{grid-template-columns:1fr;}
+    .brand h1{font-size:17px;}
     .chart-box{height:280px;}
   }
   @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
@@ -119,16 +144,20 @@
 <body>
 <div class="wrap" id="root">
   <header class="head">
-    <div>
-      <p class="eyebrow">SouthState Correspondent · Market Intelligence</p>
-      <h1>CRE Market Risk Monitor</h1>
-      <p class="sub">National commercial real estate price, credit, and lending indicators for community bank balance-sheet context.</p>
+    <div class="brand">
+      <span class="tick"></span>
+      <div>
+        <p class="wm">SouthState Correspondent · Market Intelligence</p>
+        <h1>CRE Market Risk Monitor</h1>
+      </div>
     </div>
-    <div class="stamp">
-      <div id="stamp-date">Loading…</div>
-      <span class="badge sample" id="src-badge">Sample data</span>
+    <div class="head-right">
+      <div class="stamp"><div id="stamp-date">Loading…</div></div>
+      <span class="chip sample badge sample" id="src-badge"><span class="dot"></span>Sample data</span>
     </div>
   </header>
+
+  <p class="lede">National commercial real estate price, credit, and lending indicators for community bank balance-sheet context.</p>
 
   <section class="kpis" id="kpis"></section>
 
@@ -160,7 +189,7 @@
 
   <section class="panel" id="panel-types" role="tabpanel">
     <div class="type-grid" id="type-real"></div>
-    <p class="type-note">The cards above are FRED CRE series. FRED publishes no office/retail/industrial <em>price</em> indices — those are licensed (Green Street, CoStar, NCREIF/RCA). The cards below are public <strong>demand proxies</strong>: they move with each sector but are not its valuation. Office uses office-using employment (financial + professional/business + information); retail uses advance retail sales; industrial uses the industrial production index.</p>
+    <p class="type-note">The cards above are FRED CRE series. Below are <strong>sector demand signals</strong> — a 0–100 read on each property type's near-term direction, scored from the trajectory of a public FRED indicator (office-using employment, retail sales, industrial production). They track demand fundamentals, not transaction prices; for property-level valuations a licensed feed (Green Street, CoStar, NCREIF/RCA) is still required.</p>
     <div style="height:14px"></div>
     <div class="type-grid" id="type-stub"></div>
   </section>
@@ -204,7 +233,7 @@
   // ---- config ----
   var WORKER = "https://fred-proxy.jameswspence.workers.dev/bundle?start=2006-01-01";
   var WORKER_TYPES = "https://fred-proxy.jameswspence.workers.dev/types?start=2006-01-01";
-  var NAVY="#002D72", GOLD="#FFBF3F", BLUE="#0960BB", GRAY="#4C4C4C", GOOD="#1f7a52", BAD="#b3261e";
+  var NAVY="#002D72", GOLD="#FFBF3F", BLUE="#0960BB", GRAY="#7A8699", GOOD="#0E9F6E", BAD="#E02424";
 
   // ---- iframe auto-height ----
   function postHeight(){
@@ -259,10 +288,17 @@
   }
 
   // ---- load ----
+  window.__dataStatus = {live:false, reason:'', source:'', generated:''};
   fetch(WORKER,{mode:'cors'})
-    .then(function(r){ if(!r.ok) throw new Error('worker '+r.status); return r.json(); })
-    .then(function(d){ render(d, false); })
-    .catch(function(){ render(SAMPLE, true); });
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(d){
+      window.__dataStatus={live:true, reason:'', source:d.source||'FRED', generated:d.generated||''};
+      render(d, false);
+    })
+    .catch(function(e){
+      window.__dataStatus={live:false, reason:(e&&e.message)||'unreachable', source:'', generated:''};
+      render(SAMPLE, true);
+    });
 
   function byKey(d,k){
     var s=(d.series||[]).find(function(x){return x.key===k;});
@@ -279,12 +315,16 @@
   function render(d, isSample){
     // badge + stamp
     var badge=document.getElementById('src-badge');
-    badge.className = 'badge ' + (isSample?'sample':'live');
-    badge.textContent = isSample?'Sample data':'Live · FRED';
+    badge.className = 'chip badge ' + (isSample?'sample':'live');
+    badge.innerHTML = '<span class="dot"></span>' + (isSample?'Sample data':'Live · FRED');
     document.getElementById('stamp-date').textContent =
       'As of ' + new Date(d.generated||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
     document.getElementById('foot-meta').textContent =
-      isSample ? ' · Showing illustrative sample values — connect Worker for live data.' : ' · Auto-refreshes from FRED.';
+      isSample
+        ? ' · NOT CONNECTED to FRED — showing sample values (reason: ' + (window.__dataStatus.reason||'unreachable') + ').'
+        : ' · Data: ' + (window.__dataStatus.source||'FRED') + ', retrieved ' +
+          new Date(window.__dataStatus.generated||Date.now()).toLocaleString('en-US',
+            {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}) + '.';
 
     var price=byKey(d,'cre_price_index'), mf=byKey(d,'multifamily_index'),
         yoy=byKey(d,'cre_price_yoy'), del=byKey(d,'delinquency_rate'),
@@ -311,7 +351,9 @@
         delta = arrow+' '+fmt(Math.abs(diff),k.dp)+(k.isLevel?' pts':'')+' YoY';
       }
       var asof = L? new Date(L.date).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '';
-      html+='<div class="kpi"><div class="lbl">'+k.lbl+'</div><div class="val">'+val+'</div>'+
+      // flag = an inverse (risk) metric moving the wrong way: gold underline signals "watch this"
+      var flag = (k.inv && L && P && (L.value - P.value) > 0) ? ' flag' : '';
+      html+='<div class="kpi'+flag+'"><div class="lbl">'+k.lbl+'</div><div class="val">'+val+'</div>'+
             (delta?'<div class="delta '+cls+'">'+delta+'</div>':'')+
             (asof?'<div class="asof">'+asof+'</div>':'')+'</div>';
     });
@@ -324,7 +366,7 @@
     renderTypes(d, price, mf, byKey(d,'cd_loans'), isSample);
 
     // charts
-    Chart.defaults.font.family="'Cera Pro',sans-serif";
+    Chart.defaults.font.family="'Inter',sans-serif";
     Chart.defaults.font.size=11;
     Chart.defaults.color=GRAY;
 
@@ -373,9 +415,9 @@
     var stubEl=document.getElementById('type-stub');
     stubEl.innerHTML='<div class="type-card stub"><div class="tc-val muted">Loading proxies…</div></div>';
 
-    var proxyMeta={office:{name:'Office',hint:'office-using jobs'},
-                   retail:{name:'Retail',hint:'retail sales'},
-                   industrial:{name:'Industrial',hint:'industrial production'}};
+    var proxyMeta={office:{name:'Office',meth:'Signal from office-using employment (FRED)'},
+                   retail:{name:'Retail',meth:'Signal from retail sales (FRED)'},
+                   industrial:{name:'Industrial',meth:'Signal from industrial production (FRED)'}};
     fetch(WORKER_TYPES,{mode:'cors'})
       .then(function(r){ if(!r.ok) throw new Error('types '+r.status); return r.json(); })
       .then(function(td){ renderProxies(td, proxyMeta, false); })
@@ -400,6 +442,31 @@
       observations:gen(2015,1,[101,100,99,99,100,101,102,103,104,99,94,101,103,103,102,102,103,103,103,103,103,103])}
   ]};
 
+  function sectorSignal(obs, freq){
+    // Trend-dynamics score from the indicator's OWN trajectory — no cross-series weights.
+    // Designed so a steadily-rising nominal series reads "Stable", acceleration reads
+    // "Expanding", and deceleration/decline reads "Softening" (rather than pinning at 100
+    // just because employment/sales are near an all-time high, as nominal levels usually are).
+    var step=(freq==='M')?12:4;
+    var n=obs.length;
+    var L=obs[n-1];
+    var P1=obs[Math.max(0,n-1-step)];        // 1 yr ago
+    var P2=obs[Math.max(0,n-1-step*2)];      // 2 yrs ago
+    var yoy  = (L&&P1&&P1.value)? ((L.value-P1.value)/P1.value)*100 : 0;
+    var yoyPrev = (P1&&P2&&P2.value)? ((P1.value-P2.value)/P2.value)*100 : 0;
+    var accel = yoy - yoyPrev;               // is growth speeding up or slowing?
+    // Pace: center 50 on "flat", ±7% YoY spans the range (nominal series grow ~2-4%/yr normally).
+    var paceScore = 50 + (yoy/7)*40;
+    // Acceleration nudges ±15 pts (momentum direction).
+    var accelScore = (accel/3)*15;
+    var score = Math.round(Math.max(2, Math.min(98, paceScore + accelScore)));
+    var verdict, cls;
+    if(score>=58){verdict='Expanding';cls='exp';}
+    else if(score>=42){verdict='Stable';cls='stab';}
+    else {verdict='Softening';cls='soft';}
+    return {score:score, verdict:verdict, cls:cls, yoy:yoy, accel:accel};
+  }
+
   function renderProxies(td, meta, isSample){
     var arr=td.proxies||[];
     var html='', sparks=[];
@@ -407,26 +474,29 @@
       var p=arr.find(function(x){return x.key===key;});
       var m=meta[key];
       if(!p||!p.observations||!p.observations.length){
-        html+='<div class="type-card stub"><div class="tc-head"><span class="tc-name">'+m.name+
-          '</span><span class="pill illus">Unavailable</span></div>'+
-          '<div class="tc-val muted">—</div><div class="tc-delta">Proxy feed error</div>'+
-          '<div class="tc-spark"></div></div>';
+        html+='<div class="sig-card"><div class="sig-head"><span class="sig-name">'+m.name+
+          '</span><span class="sig-score">—</span></div>'+
+          '<div class="sig-verdict stab">No signal</div>'+
+          '<div class="sig-sub">data unavailable</div>'+
+          '<div class="gauge"><span class="mark" style="left:50%"></span></div>'+
+          '<div class="sig-meth">'+m.meth+'</div></div>';
         return;
       }
-      var L=p.observations[p.observations.length-1];
-      var step=(p.frequency==='M')?12:4;
-      var P=p.observations[Math.max(0,p.observations.length-1-step)];
-      var val=fmt(L.value,0), delta='', cls='';
-      if(L&&P){var diff=((L.value-P.value)/P.value)*100;var up=diff>=0;
-        cls=up?'up':'down';delta=(up?'▲ ':'▼ ')+fmt(Math.abs(diff),1)+'% YoY';}
+      var s=sectorSignal(p.observations, p.frequency);
+      var yoyTxt=(s.yoy>=0?'▲ ':'▼ ')+fmt(Math.abs(s.yoy),1)+'% over 12 mo';
       var cid='spark-px-'+i;
-      sparks.push({id:cid,obs:p.observations,color:BLUE});
-      html+='<div class="type-card"><div class="tc-head"><span class="tc-name">'+m.name+
-        '</span><span class="pill proxy">'+(isSample?'Proxy · sample':'Proxy · FRED')+'</span></div>'+
-        '<div class="tc-val">'+val+'</div>'+
-        (delta?'<div class="tc-delta '+cls+'">'+delta+'</div>':'<div class="tc-delta">&nbsp;</div>')+
-        '<div style="font-family:var(--mono);font-size:9.5px;color:#9a978f;margin-top:3px;">'+m.hint+'</div>'+
-        '<div class="tc-spark"><canvas id="'+cid+'"></canvas></div></div>';
+      var sparkColor = s.cls==='exp'?GOOD:(s.cls==='soft'?BAD:GRAY);
+      sparks.push({id:cid,obs:p.observations,color:sparkColor});
+      html+='<div class="sig-card">'+
+        '<div class="sig-head"><span class="sig-name">'+m.name+'</span>'+
+          '<span class="sig-score">'+s.score+'/100</span></div>'+
+        '<div class="sig-verdict '+s.cls+'">'+s.verdict+'</div>'+
+        '<div class="sig-sub">'+yoyTxt+'</div>'+
+        '<div class="gauge"><span class="mark" style="left:'+s.score+'%"></span></div>'+
+        '<div class="gauge-scale"><span>Softening</span><span>Stable</span><span>Expanding</span></div>'+
+        '<div class="sig-spark"><canvas id="'+cid+'"></canvas></div>'+
+        '<div class="sig-meth">'+m.meth+(isSample?' · sample':'')+'</div>'+
+      '</div>';
     });
     document.getElementById('type-stub').innerHTML=html;
     window.__proxySparks=sparks;
@@ -483,7 +553,7 @@
         tooltip:{backgroundColor:NAVY,padding:10,cornerRadius:6,titleFont:{weight:'700'}} },
       scales:{
         x:{type:'time',time:{unit:'year'},grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:9}},
-        y:Object.assign({grid:{color:'#eee'},ticks:{}}, extraY||{})
+        y:Object.assign({grid:{color:'#EEF1F6'},ticks:{}}, extraY||{})
       }
     };
   }
