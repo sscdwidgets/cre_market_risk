@@ -218,7 +218,7 @@
     <button class="tab" role="tab" aria-selected="true"  data-tab="prices">Prices</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="types">Property Types</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="credit">Credit Stress</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="lending">Lending Conditions</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="lending">Construction Lending</button>
   </div>
 
   <section class="panel active" id="panel-prices" role="tabpanel">
@@ -259,9 +259,9 @@
 
   <section class="panel" id="panel-lending" role="tabpanel">
     <div class="chart-card">
-      <h2 class="chart-title">Banks tightening CRE lending standards</h2>
-      <p class="chart-note">Senior Loan Officer Survey, net % of domestic banks tightening, by CRE category. Above zero = credit getting harder to get; sustained climbs lead credit stress.</p>
-      <div class="chart-box"><canvas id="c-tighten"></canvas></div>
+      <h2 class="chart-title">Construction &amp; land development lending</h2>
+      <p class="chart-note">C&amp;D loan balances vs. total CRE loans, all commercial banks ($B). Construction lending is where CRE stress tends to surface first — watch C&amp;D growing faster than the total book.</p>
+      <div class="chart-box"><canvas id="c-construction"></canvas></div>
     </div>
   </section>
 
@@ -328,13 +328,7 @@
       {key:'cre_loans',meta:{label:'CRE Loans'},units:'$B',frequency:'M',
         observations:gen(2015,1,[1620,1700,1790,1880,1970,2060,2150,2240,2330,2420,2510,2600,2690,2740,2780,2810,2830,2845,2855,2862,2868,2872])},
       {key:'cd_loans',meta:{label:'C&D Loans'},units:'$B',frequency:'M',
-        observations:gen(2015,1,[290,305,322,340,358,375,392,408,422,436,448,460,472,480,486,490,492,491,489,487,486,485])},
-      {key:'tightening_mf',meta:{label:'Multifamily'},units:'Net %',frequency:'Q',
-        observations:gen(2015,1,[2,1,0,-1,0,3,5,4,2,1,0,8,22,46,64,58,40,28,16,9,5,4])},
-      {key:'tightening_cd',meta:{label:'Construction & Land Dev'},units:'Net %',frequency:'Q',
-        observations:gen(2015,1,[6,4,3,1,2,6,9,8,5,3,2,14,30,55,71,66,52,40,28,18,12,10])},
-      {key:'tightening_nres',meta:{label:'Nonfarm Nonresidential'},units:'Net %',frequency:'Q',
-        observations:gen(2015,1,[3,2,1,0,1,4,7,6,3,2,1,11,26,50,67,60,44,32,20,12,7,6])}
+        observations:gen(2015,1,[290,305,322,340,358,375,392,408,422,436,448,460,472,480,486,490,492,491,489,487,486,485])}
     ]
   };
   function gen(y,q,vals){
@@ -388,15 +382,28 @@
 
     var price=byKey(d,'cre_price_index'), mf=byKey(d,'multifamily_index'),
         yoy=byKey(d,'cre_price_yoy'), del=byKey(d,'delinquency_rate'),
-        loans=byKey(d,'cre_loans'), tight=byKey(d,'tightening_mf'),
-        tightCD=byKey(d,'tightening_cd'), tightNR=byKey(d,'tightening_nres');
+        loans=byKey(d,'cre_loans'), cd=byKey(d,'cd_loans');
+
+    // CRE loan growth (YoY %) derived from the CRE loans level series — a live,
+    // meaningful risk signal (fast loan growth = building exposure). Replaces the
+    // discontinued SLOOS "net % tightening" series, which returns no current data.
+    var loanGrowth=null;
+    if(loans && loans.observations && loans.observations.length>13){
+      var lo=loans.observations, ln=lo.length, step=(loans.frequency==='M')?12:4;
+      var pts=[];
+      for(var gi=step; gi<ln; gi++){
+        var prev=lo[gi-step].value;
+        if(prev){ pts.push({date:lo[gi].date, value:((lo[gi].value-prev)/prev)*100}); }
+      }
+      if(pts.length){ loanGrowth={frequency:loans.frequency, units:'% YoY', observations:pts}; }
+    }
 
     // KPIs
     var kpiDefs=[
       {s:price,lbl:'CRE Price Index',dp:0,inv:false},
       {s:yoy,  lbl:'Price YoY',dp:1,suffix:'%',isLevel:true,inv:false},
       {s:del,  lbl:'Delinquency Rate',dp:2,suffix:'%',isLevel:true,inv:true},
-      {s:tight,lbl:'Net % Tightening',dp:0,suffix:'%',isLevel:true,inv:true}
+      {s:loanGrowth,lbl:'CRE Loan Growth',dp:1,suffix:'%',isLevel:true,inv:true}
     ];
     var html='';
     kpiDefs.forEach(function(k){
@@ -420,8 +427,8 @@
     });
     document.getElementById('kpis').innerHTML=html;
 
-    // risk read — simple composite of delinquency + tightening direction
-    renderRisk(del, tight, yoy);
+    // risk read — simple composite of delinquency + CRE loan-growth direction
+    renderRisk(del, loanGrowth, yoy);
 
     // property-type breakout (real FRED cards + illustrative stubs)
     renderTypes(d, price, mf, byKey(d,'cd_loans'), isSample);
@@ -439,10 +446,10 @@
 
     lineChart('c-delinq', [seriesXY(del)], ['Delinquency %'], [BAD], false, '%');
     lineChart('c-loans',  [seriesXY(loans)], ['CRE loans ($B)'], [NAVY], true);
-    lineChart('c-tighten',
-      [seriesXY(tight), seriesXY(tightCD), seriesXY(tightNR)],
-      ['Multifamily', 'Construction & Land Dev', 'Nonfarm Nonresidential'],
-      [NAVY, BLUE, GOLD], false, '%');
+    lineChart('c-construction',
+      [seriesXY(cd), seriesXY(loans)],
+      ['Construction & Land Dev ($B)', 'Total CRE Loans ($B)'],
+      [GOLD, NAVY], false, '');
 
     setTimeout(postHeight,60);
   }
@@ -589,14 +596,15 @@
         scales:{x:{type:'time',display:false},y:{display:false}}}});
   }
 
-  function renderRisk(del,tight,yoy){
-    if(!del && !tight){ return; }
-    var dL=last(del), tL=last(tight), yL=last(yoy);
+  function renderRisk(del,growth,yoy){
+    if(!del && !growth){ return; }
+    var dL=last(del), gL=last(growth), yL=last(yoy);
     var score=0, notes=[];
     if(dL){ if(dL.value>2){score+=2;notes.push('elevated delinquencies');}
             else if(dL.value>1.3){score+=1;notes.push('rising delinquencies');} }
-    if(tL){ if(tL.value>30){score+=2;notes.push('banks sharply tightening');}
-            else if(tL.value>5){score+=1;notes.push('credit conditions firming');} }
+    if(gL){ if(gL.value>10){score+=2;notes.push('rapid CRE loan growth');}
+            else if(gL.value>6){score+=1;notes.push('CRE loan growth accelerating');}
+            else if(gL.value<0){score+=1;notes.push('CRE loan balances contracting');} }
     if(yL && yL.value<0){score+=1;notes.push('prices declining year-over-year');}
     var labels=['Low','Low–Moderate','Moderate','Elevated','High'];
     var idx=Math.min(score,4);
