@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRE Market Risk Monitor</title>
+<title>CRE Market Pulse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -68,6 +68,30 @@
   .chip.sample,.badge.sample{background:var(--warn-bg);color:var(--warn);border-color:#F2D9B0;}
   .chip.sample .dot{background:var(--warn);}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  /* "Pulse" motif: a small ECG/heartbeat trace beside the title. The line draws
+     itself on a loop and a gold blip rides the spike — echoes the product name
+     without being loud. Hidden on very small screens. */
+  .pulse-trace{width:120px;height:28px;margin-left:14px;align-self:center;overflow:visible;}
+  .pulse-trace path{
+    stroke-dasharray:240;stroke-dashoffset:240;
+    animation:traceDraw 3.2s ease-in-out infinite;
+  }
+  .pulse-trace .pulse-blip{
+    opacity:0;
+    animation:blipFlash 3.2s ease-in-out infinite;
+  }
+  @keyframes traceDraw{
+    0%{stroke-dashoffset:240;}
+    55%{stroke-dashoffset:0;}
+    100%{stroke-dashoffset:0;opacity:.55;}
+  }
+  @keyframes blipFlash{
+    0%,40%{opacity:0;}
+    47%{opacity:1;}
+    54%,100%{opacity:0;}
+  }
+  @media(max-width:560px){ .pulse-trace{display:none;} }
 
   .lede{font-size:13px;color:var(--ink-2);margin:-8px 0 22px;max-width:62ch;line-height:1.55;}
 
@@ -167,8 +191,13 @@
     <div class="brand">
       <span class="tick"></span>
       <div>
-        <h1>CRE Market Risk Monitor</h1>
+        <h1>CRE Market Pulse</h1>
       </div>
+      <svg class="pulse-trace" viewBox="0 0 120 28" aria-hidden="true" focusable="false">
+        <path d="M0,14 L34,14 L40,14 L44,5 L50,23 L56,14 L62,14 L66,11 L70,17 L74,14 L120,14"
+              fill="none" stroke="var(--navy)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle class="pulse-blip" cx="50" cy="23" r="2.6" fill="var(--gold)"/>
+      </svg>
     </div>
     <div class="head-right">
       <div class="stamp"><div id="stamp-date">Loading…</div></div>
@@ -272,6 +301,14 @@
       document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
       document.getElementById('panel-'+t.dataset.tab).classList.add('active');
       if(t.dataset.tab==='types' && window.__redrawTypes){ window.__redrawTypes(); }
+      // Charts drawn while their panel was display:none render at zero size;
+      // resize them now that the panel is visible.
+      setTimeout(function(){
+        Object.keys(__charts).forEach(function(id){
+          var c=__charts[id];
+          if(c && c.canvas && c.canvas.offsetParent!==null){ c.resize(); }
+        });
+      },50);
       setTimeout(postHeight,40);
     });
   });
@@ -584,6 +621,7 @@
       }
     };
   }
+  var __charts={};
   function lineChart(id,datasetsXY,labels,colors,fill,unit){
     var ctx=document.getElementById(id); if(!ctx) return;
     var ds=datasetsXY.map(function(data,i){
@@ -591,7 +629,8 @@
         borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.25,fill:!!fill};
     });
     var opts=baseOpts(unit?{ticks:{callback:function(v){return v+unit;}}}:null);
-    new Chart(ctx,{type:'line',data:{datasets:ds},options:opts});
+    if(__charts[id]) __charts[id].destroy();
+    __charts[id]=new Chart(ctx,{type:'line',data:{datasets:ds},options:opts});
   }
   function barChart(id,dataXY,color,unit,signed){
     var ctx=document.getElementById(id); if(!ctx) return;
