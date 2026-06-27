@@ -69,11 +69,12 @@
   .chip.sample .dot{background:var(--warn);}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 
-  .lede{font-size:13px;color:var(--ink-2);margin:-8px 0 22px;max-width:62ch;line-height:1.55;}
+  /* ---- Combined top panel: navy stress header + light KPI body, one outline ---- */
+  .pulse-panel{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+    background:var(--canvas);box-shadow:0 1px 3px rgba(10,23,51,.06);margin-bottom:18px;}
 
-  /* ---- KPI rail: hairline-divided row, not floating cards ---- */
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);
-    border:1px solid var(--line);border-radius:var(--r);background:var(--canvas);overflow:hidden;margin-bottom:8px;}
+  /* ---- KPI rail: hairline-divided row, light body of the combined panel ---- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);background:var(--canvas);}
   .kpi{padding:16px 18px;border-left:1px solid var(--line);position:relative;}
   .kpi:first-child{border-left:none;}
   .kpi .lbl{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;
@@ -85,10 +86,9 @@
   .kpi::after{content:"";position:absolute;left:18px;right:18px;bottom:0;height:2px;background:var(--gold);opacity:0;}
   .kpi.flag::after{opacity:1;}
 
-  /* ---- Risk banner ---- */
-  /* ---- Risk banner: verdict · stress ladder · driver chips ---- */
+  /* ---- Risk banner: navy header zone of the combined panel (verdict · ladder · drivers) ---- */
   .risk{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;
-    background:var(--navy);color:#fff;border-radius:var(--r);padding:20px 26px;margin-top:16px;
+    background:var(--navy);color:#fff;padding:20px 26px;
     background-image:linear-gradient(135deg,#002D72 0%,#013a8f 100%);}
   .risk-verdict{padding-right:26px;border-right:1px solid rgba(255,255,255,.18);}
   .risk-level{font-size:30px;font-weight:600;line-height:1;font-family:var(--ui);letter-spacing:-.02em;white-space:nowrap;}
@@ -201,19 +201,18 @@
     </div>
   </header>
 
-  <p class="lede">National commercial real estate price, credit, and lending indicators for community bank balance-sheet context.</p>
-
-  <section class="kpis" id="kpis"></section>
-
-  <div class="risk" id="risk" hidden>
-    <div class="risk-verdict">
-      <div class="risk-level" id="risk-score">—</div>
-      <div class="risk-caption">National CRE stress read</div>
+  <div class="pulse-panel" id="pulse-panel">
+    <div class="risk" id="risk" hidden>
+      <div class="risk-verdict">
+        <div class="risk-level" id="risk-score">—</div>
+        <div class="risk-caption">National CRE stress read</div>
+      </div>
+      <div class="risk-main">
+        <div class="risk-ladder" id="risk-ladder" role="img" aria-label="Stress level scale"></div>
+        <div class="risk-drivers" id="risk-drivers"></div>
+      </div>
     </div>
-    <div class="risk-main">
-      <div class="risk-ladder" id="risk-ladder" role="img" aria-label="Stress level scale"></div>
-      <div class="risk-drivers" id="risk-drivers"></div>
-    </div>
+    <section class="kpis" id="kpis"></section>
   </div>
 
   <div class="tabs" role="tablist" id="tabs">
