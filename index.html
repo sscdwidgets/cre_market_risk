@@ -520,7 +520,7 @@
   function sectorSignal(obs, freq){
     // Trend-dynamics score from the indicator's OWN trajectory — no cross-series weights.
     // Designed so a steadily-rising nominal series reads "Stable", acceleration reads
-    // "Add Capital", and deceleration/decline reads "Decrease Capital" (rather than pinning
+    // "Increase Capital", and deceleration/decline reads "Decrease Capital" (rather than pinning
     // just because employment/sales are near an all-time high, as nominal levels usually are).
     var step=(freq==='M')?12:4;
     var n=obs.length;
@@ -536,7 +536,7 @@
     var accelScore = (accel/3)*15;
     var score = Math.round(Math.max(2, Math.min(98, paceScore + accelScore)));
     var verdict, cls;
-    if(score>=58){verdict='Add Capital';cls='exp';}
+    if(score>=58){verdict='Increase Capital';cls='exp';}
     else if(score>=42){verdict='Maintain';cls='stab';}
     else {verdict='Decrease Capital';cls='soft';}
     return {score:score, verdict:verdict, cls:cls, yoy:yoy, accel:accel};
@@ -570,7 +570,7 @@
         '<div class="sig-verdict '+s.cls+'"><span class="sig-arrow">'+arrow+'</span>'+s.verdict+'</div>'+
         '<div class="sig-sub">'+yoyTxt+'</div>'+
         '<div class="gauge"><span class="mark" style="left:'+s.score+'%"></span></div>'+
-        '<div class="gauge-scale"><span>Decrease</span><span>Maintain</span><span>Add</span></div>'+
+        '<div class="gauge-scale"><span>Decrease</span><span>Maintain</span><span>Increase</span></div>'+
         '<div class="sig-spark"><canvas id="'+cid+'"></canvas></div>'+
         '<div class="sig-meth">'+m.meth+(isSample?' · sample':'')+'</div>'+
       '</div>';
