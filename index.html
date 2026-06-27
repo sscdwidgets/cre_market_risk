@@ -69,30 +69,6 @@
   .chip.sample .dot{background:var(--warn);}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 
-  /* "Pulse" motif: a small ECG/heartbeat trace beside the title. The line draws
-     itself on a loop and a gold blip rides the spike — echoes the product name
-     without being loud. Hidden on very small screens. */
-  .pulse-trace{width:120px;height:28px;margin-left:14px;align-self:center;overflow:visible;}
-  .pulse-trace path{
-    stroke-dasharray:240;stroke-dashoffset:240;
-    animation:traceDraw 3.2s ease-in-out infinite;
-  }
-  .pulse-trace .pulse-blip{
-    opacity:0;
-    animation:blipFlash 3.2s ease-in-out infinite;
-  }
-  @keyframes traceDraw{
-    0%{stroke-dashoffset:240;}
-    55%{stroke-dashoffset:0;}
-    100%{stroke-dashoffset:0;opacity:.55;}
-  }
-  @keyframes blipFlash{
-    0%,40%{opacity:0;}
-    47%{opacity:1;}
-    54%,100%{opacity:0;}
-  }
-  @media(max-width:560px){ .pulse-trace{display:none;} }
-
   .lede{font-size:13px;color:var(--ink-2);margin:-8px 0 22px;max-width:62ch;line-height:1.55;}
 
   /* ---- KPI rail: hairline-divided row, not floating cards ---- */
@@ -110,15 +86,39 @@
   .kpi.flag::after{opacity:1;}
 
   /* ---- Risk banner ---- */
-  .risk{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;
-    background:var(--navy);color:#fff;border-radius:var(--r);padding:20px 24px;margin-top:16px;
+  /* ---- Risk banner: verdict · stress ladder · driver chips ---- */
+  .risk{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;
+    background:var(--navy);color:#fff;border-radius:var(--r);padding:20px 26px;margin-top:16px;
     background-image:linear-gradient(135deg,#002D72 0%,#013a8f 100%);}
-  .risk .score{font-size:34px;font-weight:600;line-height:1;font-family:var(--ui);letter-spacing:-.02em;
-    padding-right:20px;border-right:1px solid rgba(255,255,255,.18);}
-  .risk .score small{display:block;font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.12em;
-    opacity:.6;text-transform:uppercase;margin-top:6px;}
-  .risk .read h3{margin:0 0 4px;font-size:14px;font-weight:600;color:var(--gold);}
-  .risk .read p{margin:0;font-size:12.5px;opacity:.9;line-height:1.5;color:#D6E0F0;}
+  .risk-verdict{padding-right:26px;border-right:1px solid rgba(255,255,255,.18);}
+  .risk-level{font-size:30px;font-weight:600;line-height:1;font-family:var(--ui);letter-spacing:-.02em;white-space:nowrap;}
+  .risk-level.lv0{color:#7FE3BC;} .risk-level.lv1{color:#BCE6A8;}
+  .risk-level.lv2{color:var(--gold);} .risk-level.lv3{color:#FFA86B;} .risk-level.lv4{color:#FF8A8A;}
+  .risk-caption{font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.12em;
+    opacity:.6;text-transform:uppercase;margin-top:8px;}
+
+  .risk-main{display:flex;flex-direction:column;gap:14px;min-width:0;}
+  /* segmented ladder */
+  .risk-ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;}
+  .rl-seg{position:relative;}
+  .rl-seg .bar{height:7px;border-radius:3px;background:rgba(255,255,255,.13);transition:background .4s,box-shadow .3s;}
+  .rl-seg.on .bar{background:var(--seg);}
+  .rl-seg.cur .bar{height:9px;margin-top:-1px;box-shadow:0 0 0 2px rgba(255,255,255,.85), 0 0 10px var(--seg);}
+  .rl-seg .lab{font-family:var(--mono);font-size:8.5px;letter-spacing:.03em;color:rgba(255,255,255,.5);
+    margin-top:7px;text-align:center;white-space:nowrap;text-transform:uppercase;transition:color .3s;}
+  .rl-seg.cur .lab{color:#fff;font-weight:600;}
+
+  /* driver chips */
+  .risk-drivers{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .rd-chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;font-weight:500;
+    padding:5px 10px 5px 8px;border-radius:100px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+    color:#E8EEF8;}
+  .rd-chip .wt{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;
+    border-radius:100px;font-size:10px;font-weight:700;background:var(--chip);color:#06122B;}
+  .rd-chip.w2{border-color:rgba(255,138,138,.5);background:rgba(224,36,36,.16);}
+  .rd-chip.w1{border-color:rgba(255,191,63,.4);background:rgba(255,191,63,.12);}
+  .risk-clear{font-family:var(--mono);font-size:11.5px;color:#BFD2EC;opacity:.85;display:inline-flex;align-items:center;gap:7px;}
+  .risk-clear .ok{width:7px;height:7px;border-radius:50%;background:#7FE3BC;}
 
   /* ---- Tabs: segmented underline ---- */
   .tabs{display:flex;gap:2px;margin:28px 0 0;flex-wrap:wrap;border-bottom:1px solid var(--line);}
@@ -165,6 +165,7 @@
   .sig-score{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink-3);font-feature-settings:'tnum' 1;}
   .sig-verdict{font-size:20px;font-weight:600;line-height:1.1;margin:10px 0 2px;letter-spacing:-.01em;}
   .sig-verdict.exp{color:var(--pos);} .sig-verdict.stab{color:var(--ink-2);} .sig-verdict.soft{color:var(--neg);}
+  .sig-arrow{display:inline-block;margin-right:6px;font-size:16px;line-height:1;vertical-align:baseline;}
   .sig-sub{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-bottom:13px;font-weight:500;}
   .gauge{height:5px;border-radius:3px;background:linear-gradient(90deg,#F2C4C0 0%,#EDE4CC 50%,#B6E2CC 100%);position:relative;}
   .gauge .mark{position:absolute;top:-4px;width:3px;height:13px;border-radius:2px;background:var(--ink);transform:translateX(-50%);transition:left .4s ease;box-shadow:0 0 0 2px var(--canvas);}
@@ -193,11 +194,6 @@
       <div>
         <h1>CRE Market Pulse</h1>
       </div>
-      <svg class="pulse-trace" viewBox="0 0 120 28" aria-hidden="true" focusable="false">
-        <path d="M0,14 L34,14 L40,14 L44,5 L50,23 L56,14 L62,14 L66,11 L70,17 L74,14 L120,14"
-              fill="none" stroke="var(--navy)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
-        <circle class="pulse-blip" cx="50" cy="23" r="2.6" fill="var(--gold)"/>
-      </svg>
     </div>
     <div class="head-right">
       <div class="stamp"><div id="stamp-date">Loading…</div></div>
@@ -210,18 +206,34 @@
   <section class="kpis" id="kpis"></section>
 
   <div class="risk" id="risk" hidden>
-    <div class="score" id="risk-score">—<small>Stress read</small></div>
-    <div class="read"><h3 id="risk-head">—</h3><p id="risk-body">—</p></div>
+    <div class="risk-verdict">
+      <div class="risk-level" id="risk-score">—</div>
+      <div class="risk-caption">National CRE stress read</div>
+    </div>
+    <div class="risk-main">
+      <div class="risk-ladder" id="risk-ladder" role="img" aria-label="Stress level scale"></div>
+      <div class="risk-drivers" id="risk-drivers"></div>
+    </div>
   </div>
 
   <div class="tabs" role="tablist" id="tabs">
-    <button class="tab" role="tab" aria-selected="true"  data-tab="prices">Prices</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="types">Property Types</button>
+    <button class="tab" role="tab" aria-selected="true"  data-tab="overview">Overview</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="prices">Prices</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="credit">Credit Stress</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="lending">Construction Lending</button>
   </div>
 
-  <section class="panel active" id="panel-prices" role="tabpanel">
+  <section class="panel active" id="panel-overview" role="tabpanel">
+    <h2 class="chart-title" style="margin-bottom:2px">Sector capital signals</h2>
+    <p class="type-note" style="margin:0 0 16px">A 0–100 read on each property type's near-term demand direction, scored from the trajectory of a public FRED indicator (office-using employment, retail sales, industrial production). Directional demand signal for balance-sheet context — not investment advice or a credit decision.</p>
+    <div class="type-grid" id="type-stub"></div>
+    <div style="height:26px"></div>
+    <h2 class="chart-title" style="margin-bottom:2px">CRE reference series</h2>
+    <p class="type-note" style="margin:0 0 16px">Live FRED commercial real estate series — price indices and construction balances. For property-level valuations a licensed feed (Green Street, CoStar, NCREIF/RCA) is still required.</p>
+    <div class="type-grid" id="type-real"></div>
+  </section>
+
+  <section class="panel" id="panel-prices" role="tabpanel">
     <div class="chart-card">
       <h2 class="chart-title">CRE price indices — all property & multifamily</h2>
       <p class="chart-note">Federal Reserve Z.1 price indices, quarterly. Indexed levels.</p>
@@ -233,13 +245,6 @@
       <p class="chart-note">Positive bars = appreciation; negative = decline. Watch sustained negatives.</p>
       <div class="chart-box"><canvas id="c-yoy"></canvas></div>
     </div>
-  </section>
-
-  <section class="panel" id="panel-types" role="tabpanel">
-    <div class="type-grid" id="type-real"></div>
-    <p class="type-note">The cards above are FRED CRE series. Below are <strong>sector demand signals</strong> — a 0–100 read on each property type's near-term direction, scored from the trajectory of a public FRED indicator (office-using employment, retail sales, industrial production). They track demand fundamentals, not transaction prices; for property-level valuations a licensed feed (Green Street, CoStar, NCREIF/RCA) is still required.</p>
-    <div style="height:14px"></div>
-    <div class="type-grid" id="type-stub"></div>
   </section>
 
   <section class="panel" id="panel-credit" role="tabpanel">
@@ -300,7 +305,7 @@
       t.setAttribute('aria-selected','true');
       document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
       document.getElementById('panel-'+t.dataset.tab).classList.add('active');
-      if(t.dataset.tab==='types' && window.__redrawTypes){ window.__redrawTypes(); }
+      if(t.dataset.tab==='overview' && window.__redrawTypes){ window.__redrawTypes(); }
       // Charts drawn while their panel was display:none render at zero size;
       // resize them now that the panel is visible.
       setTimeout(function(){
@@ -516,7 +521,7 @@
   function sectorSignal(obs, freq){
     // Trend-dynamics score from the indicator's OWN trajectory — no cross-series weights.
     // Designed so a steadily-rising nominal series reads "Stable", acceleration reads
-    // "Expanding", and deceleration/decline reads "Softening" (rather than pinning at 100
+    // "Add Capital", and deceleration/decline reads "Decrease Capital" (rather than pinning
     // just because employment/sales are near an all-time high, as nominal levels usually are).
     var step=(freq==='M')?12:4;
     var n=obs.length;
@@ -532,9 +537,9 @@
     var accelScore = (accel/3)*15;
     var score = Math.round(Math.max(2, Math.min(98, paceScore + accelScore)));
     var verdict, cls;
-    if(score>=58){verdict='Expanding';cls='exp';}
-    else if(score>=42){verdict='Stable';cls='stab';}
-    else {verdict='Softening';cls='soft';}
+    if(score>=58){verdict='Add Capital';cls='exp';}
+    else if(score>=42){verdict='Maintain';cls='stab';}
+    else {verdict='Decrease Capital';cls='soft';}
     return {score:score, verdict:verdict, cls:cls, yoy:yoy, accel:accel};
   }
 
@@ -557,14 +562,16 @@
       var yoyTxt=(s.yoy>=0?'▲ ':'▼ ')+fmt(Math.abs(s.yoy),1)+'% over 12 mo';
       var cid='spark-px-'+i;
       var sparkColor = s.cls==='exp'?GOOD:(s.cls==='soft'?BAD:GRAY);
+      // arrow keyed to allocation call: up = add, dash = maintain, down = decrease
+      var arrow = s.cls==='exp'?'▲':(s.cls==='soft'?'▼':'–');
       sparks.push({id:cid,obs:p.observations,color:sparkColor});
       html+='<div class="sig-card">'+
         '<div class="sig-head"><span class="sig-name">'+m.name+'</span>'+
           '<span class="sig-score">'+s.score+'/100</span></div>'+
-        '<div class="sig-verdict '+s.cls+'">'+s.verdict+'</div>'+
+        '<div class="sig-verdict '+s.cls+'"><span class="sig-arrow">'+arrow+'</span>'+s.verdict+'</div>'+
         '<div class="sig-sub">'+yoyTxt+'</div>'+
         '<div class="gauge"><span class="mark" style="left:'+s.score+'%"></span></div>'+
-        '<div class="gauge-scale"><span>Softening</span><span>Stable</span><span>Expanding</span></div>'+
+        '<div class="gauge-scale"><span>Decrease</span><span>Maintain</span><span>Add</span></div>'+
         '<div class="sig-spark"><canvas id="'+cid+'"></canvas></div>'+
         '<div class="sig-meth">'+m.meth+(isSample?' · sample':'')+'</div>'+
       '</div>';
@@ -599,22 +606,49 @@
   function renderRisk(del,growth,yoy){
     if(!del && !growth){ return; }
     var dL=last(del), gL=last(growth), yL=last(yoy);
-    var score=0, notes=[];
-    if(dL){ if(dL.value>2){score+=2;notes.push('elevated delinquencies');}
-            else if(dL.value>1.3){score+=1;notes.push('rising delinquencies');} }
-    if(gL){ if(gL.value>10){score+=2;notes.push('rapid CRE loan growth');}
-            else if(gL.value>6){score+=1;notes.push('CRE loan growth accelerating');}
-            else if(gL.value<0){score+=1;notes.push('CRE loan balances contracting');} }
-    if(yL && yL.value<0){score+=1;notes.push('prices declining year-over-year');}
-    var labels=['Low','Low–Moderate','Moderate','Elevated','High'];
+    var score=0, drivers=[];
+    // Each firing signal contributes points; capture label + weight so we can show drivers.
+    if(dL){ if(dL.value>2){score+=2;drivers.push({label:'Elevated delinquencies',wt:2});}
+            else if(dL.value>1.3){score+=1;drivers.push({label:'Rising delinquencies',wt:1});} }
+    if(gL){ if(gL.value>10){score+=2;drivers.push({label:'Rapid CRE loan growth',wt:2});}
+            else if(gL.value>6){score+=1;drivers.push({label:'Loan growth accelerating',wt:1});}
+            else if(gL.value<0){score+=1;drivers.push({label:'Loan balances contracting',wt:1});} }
+    if(yL && yL.value<0){score+=1;drivers.push({label:'Prices declining YoY',wt:1});}
+
+    var labels=['Low','Low–Mod','Moderate','Elevated','High'];
+    var full=['Low','Low–Moderate','Moderate','Elevated','High'];
+    // green → amber → red across the 5 levels
+    var segColors=['#2FBF8A','#9FD45F','#FFBF3F','#FF9A52','#FF6B6B'];
     var idx=Math.min(score,4);
-    var box=document.getElementById('risk');
-    box.hidden=false;
-    document.getElementById('risk-score').innerHTML=labels[idx].split('–')[0]+'<small>Stress read</small>';
-    document.getElementById('risk-head').textContent='National CRE stress: '+labels[idx];
-    document.getElementById('risk-body').textContent= notes.length
-      ? 'Signals: '+notes.join(', ')+'. National aggregates — local exposure varies.'
-      : 'Indicators within historically normal ranges. Monitor local concentration regardless.';
+
+    document.getElementById('risk').hidden=false;
+
+    // verdict word, colored by level
+    var lvlEl=document.getElementById('risk-score');
+    lvlEl.textContent=full[idx];
+    lvlEl.className='risk-level lv'+idx;
+
+    // segmented ladder — fill everything up to and including current level
+    var ladder='';
+    for(var i=0;i<5;i++){
+      var on = i<=idx;
+      var cls='rl-seg'+(on?' on':'')+(i===idx?' cur':'');
+      ladder+='<div class="'+cls+'" style="--seg:'+segColors[i]+'">'+
+              '<div class="bar"></div><div class="lab">'+labels[i]+'</div></div>';
+    }
+    document.getElementById('risk-ladder').innerHTML=ladder;
+
+    // driver chips (or clear state)
+    var dr=document.getElementById('risk-drivers');
+    if(drivers.length){
+      dr.innerHTML = drivers.map(function(d){
+        var chipColor = d.wt>=2 ? '#FF8A8A' : '#FFD98A';
+        return '<span class="rd-chip w'+d.wt+'"><span class="wt" style="--chip:'+chipColor+'">+'+d.wt+'</span>'+d.label+'</span>';
+      }).join('') +
+      '<span class="risk-clear" style="opacity:.6;margin-left:2px">· National aggregates; local exposure varies</span>';
+    } else {
+      dr.innerHTML='<span class="risk-clear"><span class="ok"></span>Indicators within historically normal ranges — monitor local concentration regardless.</span>';
+    }
   }
 
   function baseOpts(extraY){
