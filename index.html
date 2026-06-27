@@ -537,7 +537,7 @@
     var score = Math.round(Math.max(2, Math.min(98, paceScore + accelScore)));
     var verdict, cls;
     if(score>=58){verdict='Increase Capital';cls='exp';}
-    else if(score>=42){verdict='Maintain';cls='stab';}
+    else if(score>=42){verdict='Maintain Capital';cls='stab';}
     else {verdict='Decrease Capital';cls='soft';}
     return {score:score, verdict:verdict, cls:cls, yoy:yoy, accel:accel};
   }
